@@ -20,7 +20,10 @@ public class User extends BaseEntity{
 
     @Column(name = "dateOfBirth")
     private Date dob;
+
+    @Column(unique = true)
     private String email;
+
     private String password;
 
     @Enumerated(EnumType.STRING)
