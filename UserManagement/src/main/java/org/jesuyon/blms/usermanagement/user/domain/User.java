@@ -1,10 +1,7 @@
 package org.jesuyon.blms.usermanagement.user.domain;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.Date;
 
@@ -13,6 +10,7 @@ import java.util.Date;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 @Table(name = "UserTbl")
 public class User extends BaseEntity{
     private String firstName;
