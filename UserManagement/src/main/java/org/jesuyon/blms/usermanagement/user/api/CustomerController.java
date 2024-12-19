@@ -1,5 +1,6 @@
 package org.jesuyon.blms.usermanagement.user.api;
 
+import org.jesuyon.blms.usermanagement.user.dto.CreateUserDto;
 import org.jesuyon.blms.usermanagement.user.dto.CustomerDto;
 import org.jesuyon.blms.usermanagement.user.service.CustomerService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +28,7 @@ public class CustomerController {
     }
 
     @PostMapping
-    public ResponseEntity<CustomerDto> createCustomer(@RequestBody CustomerDto customerDto) {
+    public ResponseEntity<CustomerDto> createCustomer(@RequestBody CreateUserDto customerDto) {
         return ResponseEntity.ok(customerService.createCustomer(customerDto));
     }
 

@@ -1,6 +1,7 @@
 package org.jesuyon.blms.usermanagement.user.service;
 
 import org.jesuyon.blms.usermanagement.user.domain.Customer;
+import org.jesuyon.blms.usermanagement.user.dto.CreateUserDto;
 import org.jesuyon.blms.usermanagement.user.dto.CustomerDto;
 import org.jesuyon.blms.usermanagement.user.repository.CustomerRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,7 +15,7 @@ public class CustomerService {
     @Autowired
     private CustomerRepository customerRepository;
 
-    public CustomerDto createCustomer(CustomerDto customerDto) {
+    public CustomerDto createCustomer(CreateUserDto customerDto) {
         Customer customer = mapToEntity(customerDto);
         return mapToDTO(customerRepository.save(customer));
     }
@@ -41,17 +42,21 @@ public class CustomerService {
 
     private CustomerDto mapToDTO(Customer customer) {
         CustomerDto dto = new CustomerDto();
+        dto.setId(customer.getId());
         dto.setFirstName(customer.getFirstName());
         dto.setLastName(customer.getLastName());
         dto.setEmail(customer.getEmail());
+        dto.setCreatedAt(customer.getCreatedAt());
+        dto.setUpdatedAt(customer.getUpdatedAt());
         return dto;
     }
 
-    private Customer mapToEntity(CustomerDto dto) {
+    private Customer mapToEntity(CreateUserDto dto) {
         Customer customer = new Customer();
         customer.setFirstName(dto.getFirstName());
         customer.setLastName(dto.getLastName());
         customer.setEmail(dto.getEmail());
+        customer.setPassword(dto.getPassword());
         return customer;
     }
 }

@@ -1,6 +1,7 @@
 package org.jesuyon.blms.usermanagement.user.api;
 
 import org.jesuyon.blms.usermanagement.user.dto.ClerkDto;
+import org.jesuyon.blms.usermanagement.user.dto.CreateUserDto;
 import org.jesuyon.blms.usermanagement.user.service.ClerkService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -21,13 +22,13 @@ public class ClerkController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ClerkDto> getClerkById(@PathVariable String id) {
+    public ResponseEntity<ClerkDto> getClerkById(@PathVariable("id") String id) {
         ClerkDto clerk = clerkService.getClerkById(id);
         return clerk != null ? ResponseEntity.ok(clerk) : ResponseEntity.notFound().build();
     }
 
     @PostMapping
-    public ResponseEntity<ClerkDto> createClerk(@RequestBody ClerkDto clerkDto) {
+    public ResponseEntity<ClerkDto> createClerk(@RequestBody CreateUserDto clerkDto) {
         return ResponseEntity.ok(clerkService.createClerk(clerkDto));
     }
 
