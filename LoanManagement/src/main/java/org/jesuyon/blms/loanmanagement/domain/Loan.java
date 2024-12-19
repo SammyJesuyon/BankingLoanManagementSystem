@@ -24,7 +24,7 @@ public class Loan extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private LoanStatus status;
 
-    private String clerkId;
-    private String customerId;
+    @OneToOne
+    private User clerk;
 }
 

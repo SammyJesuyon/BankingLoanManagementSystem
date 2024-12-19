@@ -1,6 +1,8 @@
 package org.jesuyon.blms.loanmanagement.domain;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -10,14 +12,15 @@ import lombok.Setter;
 @Entity
 @Getter
 @Setter
-@NoArgsConstructor
 @AllArgsConstructor
-public class Clerk {
+@NoArgsConstructor
+public class User extends BaseEntity{
 
-    @Id
-    private String id;
+    private String firstName;
+    private String lastName;
     private String email;
     private String password;
 
-    private String role = "CLERK";
+    @Enumerated(EnumType.STRING)
+    private RoleType role;
 }
