@@ -1,22 +1,31 @@
 package org.jesuyon.blms.usermanagement.user.domain;
 
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.MappedSuperclass;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.UuidGenerator;
+import java.time.LocalDateTime;
 
-import java.util.Date;
 
 @Getter
 @Setter
 @MappedSuperclass
 public abstract class BaseEntity {
 
-    @Id@GeneratedValue
+    @Id@GeneratedValue@UuidGenerator
     private String id;
 
-    private Date createdAt;
-    private Date updatedAt;
-    private Date deletedAt;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+
+    @PrePersist
+    public void prePersist() {
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        this.updatedAt = LocalDateTime.now();
+    }
 }
