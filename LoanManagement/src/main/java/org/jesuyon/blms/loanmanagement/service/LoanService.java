@@ -1,5 +1,9 @@
 package org.jesuyon.blms.loanmanagement.service;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.OptimisticLockException;
+import jakarta.persistence.PersistenceContext;
+import jakarta.transaction.Transactional;
 import org.jesuyon.blms.loanmanagement.config.jms.Producer;
 import org.jesuyon.blms.loanmanagement.domain.*;
 import org.jesuyon.blms.loanmanagement.dto.*;
@@ -10,6 +14,7 @@ import org.jesuyon.blms.loanmanagement.repository.LoanApplicationRepository;
 import org.jesuyon.blms.loanmanagement.repository.LoanRepository;
 import org.jesuyon.blms.loanmanagement.repository.LoanRepaymentRepository;
 import org.jesuyon.blms.loanmanagement.repository.UserRepository;
+import org.jesuyon.blms.loanmanagement.specification.LoanSpecification;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -36,6 +41,9 @@ public class LoanService {
 
     @Autowired
     private Producer producer;
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     public LoanApplicationDto applyForLoan(LoanApplicationCreationDto dto) {
         User user = userRepository.findById(dto.getUserId())
@@ -80,65 +88,72 @@ public class LoanService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional
     public LoanDto approveLoanApplication(ApproveLoanDto approveLoanDto) {
-        LoanApplication application = loanApplicationRepository.findById(approveLoanDto.getApplicationId())
-                .orElseThrow(() -> new LoanApplicationNotFoundException("Application not found"));
+        try{
+            LoanApplication application = loanApplicationRepository.findById(approveLoanDto.getApplicationId())
+                    .orElseThrow(() -> new LoanApplicationNotFoundException("Application not found"));
 
-        if (!application.getStatus().equals(ApplicationStatus.PENDING)) {
-            throw new IllegalStateException("Loan application is not pending");
+            if (!application.getStatus().equals(ApplicationStatus.PENDING)) {
+                throw new IllegalStateException("Loan application is not pending");
+            }
+
+            application.setStatus(ApplicationStatus.APPROVED);
+            loanApplicationRepository.save(application);
+
+            User clerk = userRepository.findById(approveLoanDto.getClerkId()).orElseThrow(() -> new UserNotFoundException("Clerk not found"));
+
+            Loan loan = new Loan();
+            loan.setLoanApplication(application);
+            loan.setClerk(clerk);
+            loan.setInterestRate(approveLoanDto.getInterestRate());
+            loan.setTotalRepaymentAmount(calculateTotalRepayment(application.getRequestedAmount(), approveLoanDto.getInterestRate()));
+            loan.setStatus(LoanStatus.UNPAID);
+
+            Loan savedLoan = loanRepository.save(loan);
+            producer.sendNotification("Approved Loan " + savedLoan);
+            return LoanDto.builder()
+                    .id(savedLoan.getId())
+                    .loanApplication(mapToDto(savedLoan.getLoanApplication()))
+                    .clerk(mapToDto(savedLoan.getClerk()))
+                    .interestRate(savedLoan.getInterestRate())
+                    .totalRepaymentAmount(savedLoan.getTotalRepaymentAmount())
+                    .status(savedLoan.getStatus())
+                    .build();
+        } catch (OptimisticLockException e) {
+            throw new IllegalStateException("The application is being read/updated, please try again later.", e);
         }
-
-        application.setStatus(ApplicationStatus.APPROVED);
-        loanApplicationRepository.save(application);
-
-        User clerk = userRepository.findById(approveLoanDto.getClerkId()).orElseThrow(() -> new UserNotFoundException("Clerk not found"));
-
-        Loan loan = new Loan();
-        loan.setLoanApplication(application);
-        loan.setClerk(clerk);
-        loan.setInterestRate(approveLoanDto.getInterestRate());
-        loan.setTotalRepaymentAmount(calculateTotalRepayment(application.getRequestedAmount(), approveLoanDto.getInterestRate()));
-        loan.setStatus(LoanStatus.UNPAID);
-
-        Loan savedLoan = loanRepository.save(loan);
-        producer.sendNotification("Approved Loan " + savedLoan);
-        return LoanDto.builder()
-                .id(savedLoan.getId())
-                .loanApplication(mapToDto(savedLoan.getLoanApplication()))
-                .clerk(mapToDto(savedLoan.getClerk()))
-                .interestRate(savedLoan.getInterestRate())
-                .totalRepaymentAmount(savedLoan.getTotalRepaymentAmount())
-                .status(savedLoan.getStatus())
-                .build();
     }
 
+    @Transactional
     public LoanDto rejectLoanApplication(RejectLoanDto rejectLoanDto) {
-        LoanApplication application = loanApplicationRepository.findById(rejectLoanDto.getApplicationId())
-                .orElseThrow(() -> new LoanApplicationNotFoundException("Application not found"));
+        try{
+            LoanApplication application = loanApplicationRepository.findById(rejectLoanDto.getApplicationId())
+                    .orElseThrow(() -> new LoanApplicationNotFoundException("Application not found"));
 
-        if (!application.getStatus().equals(ApplicationStatus.PENDING)) {
-            throw new IllegalStateException("Loan application is not pending");
+            if (!application.getStatus().equals(ApplicationStatus.PENDING)) {
+                throw new IllegalStateException("Loan application is not pending");
+            }
+
+            application.setStatus(ApplicationStatus.DENIED);
+            loanApplicationRepository.save(application);
+
+            User clerk = userRepository.findById(rejectLoanDto.getClerkId()).orElseThrow(() -> new UserNotFoundException("Clerk not found"));
+
+            Loan loan = new Loan();
+            loan.setLoanApplication(application);
+            loan.setClerk(clerk);
+            loan.setStatus(LoanStatus.DENIED);
+            Loan savedLoan = loanRepository.save(loan);
+
+            return LoanDto.builder()
+                    .id(savedLoan.getId())
+                    .loanApplication(mapToDto(savedLoan.getLoanApplication()))
+                    .status(savedLoan.getStatus())
+                    .build();
+        } catch (OptimisticLockException e) {
+            throw new IllegalStateException("The application is being read/updated, please try again later.", e);
         }
-
-        application.setStatus(ApplicationStatus.DENIED);
-        loanApplicationRepository.save(application);
-
-        User clerk = userRepository.findById(rejectLoanDto.getClerkId()).orElseThrow(() -> new UserNotFoundException("Clerk not found"));
-
-        Loan loan = new Loan();
-        loan.setLoanApplication(application);
-        loan.setClerk(clerk);
-        loan.setStatus(LoanStatus.DENIED);
-        Loan savedLoan = loanRepository.save(loan);
-
-        return LoanDto.builder()
-                .id(savedLoan.getId())
-                .loanApplication(mapToDto(savedLoan.getLoanApplication()))
-                .clerk(mapToDto(savedLoan.getClerk()))
-//                .interestRate(savedLoan.getInterestRate())
-//                .totalRepaymentAmount(savedLoan.getTotalRepaymentAmount())
-                .status(savedLoan.getStatus())
-                .build();
     }
 
     private BigDecimal calculateTotalRepayment(Double requestedAmount, BigDecimal interestRate) {
@@ -189,6 +204,52 @@ public class LoanService {
 
     public List<LoanDto> getAllLoans() {
         return loanRepository.findAll().stream()
+                .map(loan -> LoanDto.builder()
+                        .id(loan.getId())
+                        .loanApplication(mapToDto(loan.getLoanApplication()))
+                        .clerk(mapToDto(loan.getClerk()))
+                        .interestRate(loan.getInterestRate())
+                        .totalRepaymentAmount(loan.getTotalRepaymentAmount())
+                        .status(loan.getStatus())
+                        .build())
+                .collect(Collectors.toList());
+    }
+
+    public List<LoanDto> getLoansByClerkAndStatus(ClerkAndStatusDto clerkAndStatusDto) {
+        return loanRepository.findLoansByClerkAndStatus(clerkAndStatusDto.getClerkId(), clerkAndStatusDto.getStatus()).stream()
+                .map(loan -> LoanDto.builder()
+                        .id(loan.getId())
+                        .loanApplication(mapToDto(loan.getLoanApplication()))
+                        .clerk(mapToDto(loan.getClerk()))
+                        .interestRate(loan.getInterestRate())
+                        .totalRepaymentAmount(loan.getTotalRepaymentAmount())
+                        .status(loan.getStatus())
+                        .build())
+                .collect(Collectors.toList());
+    }
+
+    public List<LoanDto> findLoansAboveInterestRate(BigDecimal interestRate) {
+        return entityManager.createNamedQuery("Loan.findLoansAboveInterestRate", Loan.class)
+                .setParameter("interestRate", interestRate)
+                .getResultList().stream()
+                .map(loan -> LoanDto.builder()
+                        .id(loan.getId())
+                        .loanApplication(mapToDto(loan.getLoanApplication()))
+                        .clerk(mapToDto(loan.getClerk()))
+                        .interestRate(loan.getInterestRate())
+                        .totalRepaymentAmount(loan.getTotalRepaymentAmount())
+                        .status(loan.getStatus())
+                        .build())
+                .collect(Collectors.toList());
+    }
+
+    public List<LoanDto> findAllWithFilter(LoanFilterDto loanFilterDto) {
+        return loanRepository
+                .findAll(LoanSpecification.filterLoansByApplicationAmountAndClerkId(
+                        loanFilterDto.getMaxAmount(),
+                        loanFilterDto.getMinAmount(),
+                        loanFilterDto.getClerkId()))
+                .stream()
                 .map(loan -> LoanDto.builder()
                         .id(loan.getId())
                         .loanApplication(mapToDto(loan.getLoanApplication()))

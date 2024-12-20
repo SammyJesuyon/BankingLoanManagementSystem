@@ -18,4 +18,7 @@ public class LoanApplication extends BaseEntity{
 
     @Enumerated(EnumType.STRING)
     private ApplicationStatus status=ApplicationStatus.PENDING;
+
+    @Version
+    private int version;
 }

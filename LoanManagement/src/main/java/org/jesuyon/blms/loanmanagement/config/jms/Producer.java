@@ -15,6 +15,11 @@ public class Producer {
     private String queueName;
 
     public void sendNotification(String message) {
-        jmsTemplate.convertAndSend("queueName", message);
+        try {
+            jmsTemplate.convertAndSend(queueName, message);
+        } catch (Exception e) {
+            System.err.println("Error sending notification to queue " + queueName + ": " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 }

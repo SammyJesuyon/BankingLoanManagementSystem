@@ -13,6 +13,13 @@ import java.math.BigDecimal;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@NamedQueries({
+        @NamedQuery(
+                name = "Loan.findLoansAboveInterestRate",
+                query = "SELECT l FROM Loan l " +
+                        "WHERE l.interestRate > :interestRate"
+        )
+})
 public class Loan extends BaseEntity {
 
     @OneToOne(cascade = CascadeType.ALL)

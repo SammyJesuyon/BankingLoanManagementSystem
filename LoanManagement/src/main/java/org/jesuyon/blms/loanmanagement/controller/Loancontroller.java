@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.List;
 
@@ -109,6 +110,36 @@ public class Loancontroller {
     public ResponseEntity<BaseResponse<Collection<LoanDto>>> getAllLoans() {
         try {
             List<LoanDto> loanDto = loanService.getAllLoans();
+            return ResponseBuilder.buildResponse("Loans retrieved successfully", loanDto, 200);
+        } catch (Exception e) {
+            return ResponseBuilder.buildResponse(e.getMessage(), null, 400);
+        }
+    }
+
+    @GetMapping("/byClerkAndStatus")
+    public ResponseEntity<BaseResponse<Collection<LoanDto>>> getLoansByClerkAndStatus(@RequestBody ClerkAndStatusDto clerkAndStatusDto) {
+        try {
+            List<LoanDto> loanDto = loanService.getLoansByClerkAndStatus(clerkAndStatusDto);
+            return ResponseBuilder.buildResponse("Loans retrieved successfully", loanDto, 200);
+        } catch (Exception e) {
+            return ResponseBuilder.buildResponse(e.getMessage(), null, 400);
+        }
+    }
+
+    @GetMapping("/aboveInterestRate/{interestRate}")
+    public ResponseEntity<BaseResponse<Collection<LoanDto>>> getLoansAboveInterestRate(@PathVariable BigDecimal interestRate) {
+        try {
+            List<LoanDto> loanDto = loanService.findLoansAboveInterestRate(interestRate);
+            return ResponseBuilder.buildResponse("Loans retrieved successfully", loanDto, 200);
+        } catch (Exception e) {
+            return ResponseBuilder.buildResponse(e.getMessage(), null, 400);
+        }
+    }
+
+    @GetMapping("/byClerkAndAmount")
+    public ResponseEntity<BaseResponse<Collection<LoanDto>>> getAllLoansWithFilter(@RequestBody LoanFilterDto loanFilterDto) {
+        try {
+            List<LoanDto> loanDto = loanService.findAllWithFilter(loanFilterDto);
             return ResponseBuilder.buildResponse("Loans retrieved successfully", loanDto, 200);
         } catch (Exception e) {
             return ResponseBuilder.buildResponse(e.getMessage(), null, 400);
