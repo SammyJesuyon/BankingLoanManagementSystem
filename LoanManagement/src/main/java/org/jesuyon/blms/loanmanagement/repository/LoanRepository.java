@@ -9,4 +9,5 @@ import java.util.List;
 @Repository
 public interface LoanRepository extends JpaRepository<Loan, String> {
     List<Loan> findByStatus(String status);
+
 }

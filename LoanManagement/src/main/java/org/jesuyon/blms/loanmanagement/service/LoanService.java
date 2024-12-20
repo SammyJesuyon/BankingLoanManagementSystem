@@ -1,5 +1,6 @@
 package org.jesuyon.blms.loanmanagement.service;
 
+import org.jesuyon.blms.loanmanagement.config.jms.Producer;
 import org.jesuyon.blms.loanmanagement.domain.*;
 import org.jesuyon.blms.loanmanagement.dto.*;
 import org.jesuyon.blms.loanmanagement.exception.LoanApplicationNotFoundException;
@@ -32,6 +33,9 @@ public class LoanService {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private Producer producer;
 
     public LoanApplicationDto applyForLoan(LoanApplicationCreationDto dto) {
         User user = userRepository.findById(dto.getUserId())
@@ -97,6 +101,7 @@ public class LoanService {
         loan.setStatus(LoanStatus.UNPAID);
 
         Loan savedLoan = loanRepository.save(loan);
+        producer.sendNotification("Approved Loan " + savedLoan);
         return LoanDto.builder()
                 .id(savedLoan.getId())
                 .loanApplication(mapToDto(savedLoan.getLoanApplication()))

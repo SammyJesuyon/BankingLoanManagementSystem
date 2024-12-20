@@ -9,6 +9,7 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@ToString
 public class LoanDto {
     private String id;
     private LoanApplicationDto loanApplication;

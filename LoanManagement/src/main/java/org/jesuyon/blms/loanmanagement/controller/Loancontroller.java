@@ -1,5 +1,6 @@
 package org.jesuyon.blms.loanmanagement.controller;
 
+import org.jesuyon.blms.loanmanagement.config.jms.Producer;
 import org.jesuyon.blms.loanmanagement.domain.response.BaseResponse;
 import org.jesuyon.blms.loanmanagement.domain.response.ResponseBuilder;
 import org.jesuyon.blms.loanmanagement.dto.*;
@@ -8,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.List;
 
@@ -19,10 +19,14 @@ public class Loancontroller {
     @Autowired
     private LoanService loanService;
 
+    @Autowired
+    private Producer  producer;
+
     @PostMapping("/apply")
     public ResponseEntity<BaseResponse<LoanApplicationDto>> applyForLoan(@RequestBody LoanApplicationCreationDto loanApplicationCreationDto) {
         try {
             LoanApplicationDto loanApplicationDto = loanService.applyForLoan(loanApplicationCreationDto);
+            producer.sendNotification("Loan application sent for " + loanApplicationDto.toString());
             return ResponseBuilder.buildResponse("Loan application submitted successfully", loanApplicationDto, 200);
         } catch (Exception e) {
             return ResponseBuilder.buildResponse(e.getMessage(), null, 400);
@@ -33,6 +37,7 @@ public class Loancontroller {
     public ResponseEntity<BaseResponse<LoanDto>> approveLoan(@RequestBody ApproveLoanDto approveLoanDto) {
         try {
             LoanDto loanDto = loanService.approveLoanApplication(approveLoanDto);
+            producer.sendNotification("Loan approved for " + loanDto.toString());
             return ResponseBuilder.buildResponse("Loan application approved", loanDto, 200);
         } catch (Exception e) {
             return ResponseBuilder.buildResponse(e.getMessage(), null, 400);
@@ -43,6 +48,7 @@ public class Loancontroller {
     public ResponseEntity<BaseResponse<LoanDto>> rejectLoan(@RequestBody RejectLoanDto rejectLoanDto) {
         try {
             LoanDto loanDto = loanService.rejectLoanApplication(rejectLoanDto);
+            producer.sendNotification("Loan rejected for " + loanDto.toString());
             return ResponseBuilder.buildResponse("Loan application rejected", loanDto, 200);
         } catch (Exception e) {
             return ResponseBuilder.buildResponse(e.getMessage(), null, 400);

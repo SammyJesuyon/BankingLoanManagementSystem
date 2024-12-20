@@ -7,6 +7,7 @@ import org.jesuyon.blms.loanmanagement.domain.ApplicationStatus;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@ToString
 public class LoanApplicationDto {
     private String id;
     private UserDto user;
