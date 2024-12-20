@@ -49,6 +49,8 @@ public class AuthService {
     private UserDto mapToUserDto(User user){
         return UserDto.builder()
                 .id(user.getId())
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
                 .email(user.getEmail())
                 .role(user.getRole())
                 .build();

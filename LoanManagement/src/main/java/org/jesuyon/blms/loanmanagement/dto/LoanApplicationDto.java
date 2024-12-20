@@ -1,14 +1,15 @@
 package org.jesuyon.blms.loanmanagement.dto;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.jesuyon.blms.loanmanagement.domain.ApplicationStatus;
 
-@Getter
-@Setter
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class LoanApplicationDto {
     private String id;
-    private String userId;
+    private UserDto user;
     private Double requestedAmount;
     private ApplicationStatus status;
 }

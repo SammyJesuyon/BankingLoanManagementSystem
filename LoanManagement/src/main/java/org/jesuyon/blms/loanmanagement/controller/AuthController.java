@@ -4,6 +4,7 @@ import org.jesuyon.blms.loanmanagement.domain.response.BaseResponse;
 import org.jesuyon.blms.loanmanagement.domain.response.ResponseBuilder;
 import org.jesuyon.blms.loanmanagement.dto.LoginRequestDto;
 import org.jesuyon.blms.loanmanagement.domain.response.JWTAuthResponse;
+import org.jesuyon.blms.loanmanagement.exception.LoanException;
 import org.jesuyon.blms.loanmanagement.service.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -22,8 +23,8 @@ public class AuthController {
         try {
             JWTAuthResponse jwtAuthResponse = authService.login(loginRequest);
             return ResponseBuilder.buildResponse("Login successful", jwtAuthResponse, HttpStatus.OK.value());
-        } catch (Exception e) {
-            return ResponseBuilder.buildResponse("Login failed", null, HttpStatus.BAD_REQUEST.value());
+        } catch (LoanException e) {
+            return ResponseBuilder.buildResponse(e.getMessage(), null, HttpStatus.BAD_REQUEST.value());
         }
     }
 

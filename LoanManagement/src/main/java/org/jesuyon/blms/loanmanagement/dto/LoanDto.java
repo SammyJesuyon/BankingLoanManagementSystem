@@ -1,18 +1,19 @@
 package org.jesuyon.blms.loanmanagement.dto;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.jesuyon.blms.loanmanagement.domain.LoanStatus;
 
 import java.math.BigDecimal;
 
-@Getter
-@Setter
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class LoanDto {
     private String id;
-    private String loanApplicationId;
+    private LoanApplicationDto loanApplication;
     private BigDecimal interestRate;
     private BigDecimal totalRepaymentAmount;
     private LoanStatus status;
-    private String clerkId;
+    private UserDto clerk;
 }
