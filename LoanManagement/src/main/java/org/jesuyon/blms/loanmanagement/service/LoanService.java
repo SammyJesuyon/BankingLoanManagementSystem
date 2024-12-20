@@ -16,7 +16,7 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.jesuyon.blms.loanmanagement.util.Util.mapToDto;
+import static org.jesuyon.blms.loanmanagement.util.MapDtos.mapToDto;
 
 @Service
 public class LoanService {
@@ -94,7 +94,7 @@ public class LoanService {
         loan.setClerk(clerk);
         loan.setInterestRate(approveLoanDto.getInterestRate());
         loan.setTotalRepaymentAmount(calculateTotalRepayment(application.getRequestedAmount(), approveLoanDto.getInterestRate()));
-        loan.setStatus(LoanStatus.APPROVED);
+        loan.setStatus(LoanStatus.UNPAID);
 
         Loan savedLoan = loanRepository.save(loan);
         return LoanDto.builder()
@@ -107,12 +107,41 @@ public class LoanService {
                 .build();
     }
 
+    public LoanDto rejectLoanApplication(RejectLoanDto rejectLoanDto) {
+        LoanApplication application = loanApplicationRepository.findById(rejectLoanDto.getApplicationId())
+                .orElseThrow(() -> new LoanApplicationNotFoundException("Application not found"));
+
+        if (!application.getStatus().equals(ApplicationStatus.PENDING)) {
+            throw new IllegalStateException("Loan application is not pending");
+        }
+
+        application.setStatus(ApplicationStatus.DENIED);
+        loanApplicationRepository.save(application);
+
+        User clerk = userRepository.findById(rejectLoanDto.getClerkId()).orElseThrow(() -> new UserNotFoundException("Clerk not found"));
+
+        Loan loan = new Loan();
+        loan.setLoanApplication(application);
+        loan.setClerk(clerk);
+        loan.setStatus(LoanStatus.DENIED);
+        Loan savedLoan = loanRepository.save(loan);
+
+        return LoanDto.builder()
+                .id(savedLoan.getId())
+                .loanApplication(mapToDto(savedLoan.getLoanApplication()))
+                .clerk(mapToDto(savedLoan.getClerk()))
+//                .interestRate(savedLoan.getInterestRate())
+//                .totalRepaymentAmount(savedLoan.getTotalRepaymentAmount())
+                .status(savedLoan.getStatus())
+                .build();
+    }
+
     private BigDecimal calculateTotalRepayment(Double requestedAmount, BigDecimal interestRate) {
         return BigDecimal.valueOf(requestedAmount).add(BigDecimal.valueOf(requestedAmount).multiply(interestRate));
     }
 
-    public LoanRepaymentDto makeRepayment(String loanId, LoanRepaymentCreationDto dto) {
-        Loan loan = loanRepository.findById(loanId)
+    public LoanRepaymentDto makeRepayment(LoanRepaymentCreationDto dto) {
+        Loan loan = loanRepository.findById(dto.getLoanId())
                 .orElseThrow(() -> new LoanNotFoundException("Loan not found"));
 
         LoanRepayment repayment = new LoanRepayment();
@@ -124,8 +153,45 @@ public class LoanService {
         Loan loanSaved = loanRepository.save(loan);
         return LoanRepaymentDto.builder()
                 .id(repayment.getId())
-                .loan(loanSaved)
+                .loan(mapToDto(loanSaved))
                 .amount(repayment.getAmount())
                 .build();
+    }
+
+    public LoanDto getLoanById(String id) {
+        Loan loan = loanRepository.findById(id)
+                .orElseThrow(() -> new LoanNotFoundException("Loan not found"));
+        return LoanDto.builder()
+                .id(loan.getId())
+                .loanApplication(mapToDto(loan.getLoanApplication()))
+                .clerk(mapToDto(loan.getClerk()))
+                .interestRate(loan.getInterestRate())
+                .totalRepaymentAmount(loan.getTotalRepaymentAmount())
+                .status(loan.getStatus())
+                .build();
+    }
+
+    public LoanApplicationDto getApplicationById(String id) {
+        LoanApplication application = loanApplicationRepository.findById(id)
+                .orElseThrow(() -> new LoanApplicationNotFoundException("Loan application not found"));
+        return LoanApplicationDto.builder()
+                .id(application.getId())
+                .user(mapToDto(application.getUser()))
+                .requestedAmount(application.getRequestedAmount())
+                .status(application.getStatus())
+                .build();
+    }
+
+    public List<LoanDto> getAllLoans() {
+        return loanRepository.findAll().stream()
+                .map(loan -> LoanDto.builder()
+                        .id(loan.getId())
+                        .loanApplication(mapToDto(loan.getLoanApplication()))
+                        .clerk(mapToDto(loan.getClerk()))
+                        .interestRate(loan.getInterestRate())
+                        .totalRepaymentAmount(loan.getTotalRepaymentAmount())
+                        .status(loan.getStatus())
+                        .build())
+                .collect(Collectors.toList());
     }
 }

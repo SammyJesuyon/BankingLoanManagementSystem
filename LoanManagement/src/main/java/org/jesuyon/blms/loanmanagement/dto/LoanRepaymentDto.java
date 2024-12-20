@@ -9,6 +9,6 @@ import org.jesuyon.blms.loanmanagement.domain.Loan;
 @Builder
 public class LoanRepaymentDto {
     private String id;
-    private Loan loan;
+    private LoanDto loan;
     private Double amount;
 }

@@ -41,8 +41,8 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.POST, "blms/auth/login", "/blms/users/create").permitAll() // Allow user creation and login
-                        .requestMatchers("blms/loans/apply").hasAnyRole("CUSTOMER") // Restrict access
-                        .requestMatchers("blms/loans/approve").hasAnyRole("CLERK")
+                        .requestMatchers("blms/loans/apply", "blms/loans/repay_loan").hasAnyRole("CUSTOMER") // Restrict access
+                        .requestMatchers("blms/loans/approve", "blms/loans", "blms/loans/loan_applications", "blms/loans/{id}", "blms/loans/reject").hasAnyRole("CLERK")
                         .anyRequest().authenticated() // All other requests require authentication
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)

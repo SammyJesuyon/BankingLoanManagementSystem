@@ -1,9 +1,6 @@
 package org.jesuyon.blms.loanmanagement.domain;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.OneToOne;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -15,7 +12,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class LoanApplication extends BaseEntity{
-    @OneToOne
+    @ManyToOne
     private User user;
     private Double requestedAmount;
 

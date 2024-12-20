@@ -4,7 +4,7 @@ import org.jesuyon.blms.loanmanagement.domain.User;
 import org.jesuyon.blms.loanmanagement.dto.UserDto;
 import org.jesuyon.blms.loanmanagement.dto.UserCreationDto;
 import org.jesuyon.blms.loanmanagement.repository.UserRepository;
-import org.jesuyon.blms.loanmanagement.util.Util;
+import org.jesuyon.blms.loanmanagement.util.MapDtos;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.jesuyon.blms.loanmanagement.util.Util.mapToDto;
+import static org.jesuyon.blms.loanmanagement.util.MapDtos.mapToDto;
 
 @Service
 public class UserService {
@@ -37,7 +37,7 @@ public class UserService {
 
     public List<UserDto> getAllUsers() {
         return userRepository.findAll().stream()
-                .map(Util::mapToDto)
+                .map(MapDtos::mapToDto)
                 .collect(Collectors.toList());
     }
 
