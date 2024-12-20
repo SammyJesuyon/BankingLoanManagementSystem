@@ -4,7 +4,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
-import org.jesuyon.blms.loanmanagement.domain.RoleType;
 import org.jesuyon.blms.loanmanagement.domain.User;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -20,6 +19,10 @@ import java.util.List;
 public class CustomUserDetails implements UserDetails {
 
     private User user;
+
+    public CustomUserDetails(User user) {
+        this.user = user;
+    }
 
 
     @Override
