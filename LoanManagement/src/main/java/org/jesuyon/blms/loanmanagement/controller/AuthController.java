@@ -27,9 +27,4 @@ public class AuthController {
             return ResponseBuilder.buildResponse(e.getMessage(), null, HttpStatus.BAD_REQUEST.value());
         }
     }
-
-    @GetMapping("/hello")
-    public String hello() {
-        return "Hello World!";
-    }
 }
